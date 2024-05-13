@@ -7,12 +7,12 @@ import (
 	"luckybot/app/storage/models"
 )
 
-// 获取订户请求
+// GetSubscribersRequest 获取订户请求
 type GetSubscribersRequest struct {
 	Tonce int64 `json:"tonce"` // 时间戳
 }
 
-// 获取订户
+// Subscribers 获取订户
 func Subscribers(w http.ResponseWriter, r *http.Request) {
 	// 跨域访问
 	allowAccessControl(w)
@@ -21,7 +21,7 @@ func Subscribers(w http.ResponseWriter, r *http.Request) {
 	sessionID, data, ok := authentication(r)
 	if !ok {
 		w.WriteHeader(http.StatusUnauthorized)
-		w.Write(makeErrorRespone("", ""))
+		_, _ = w.Write(makeErrorRespone("", ""))
 		return
 	}
 
@@ -29,7 +29,7 @@ func Subscribers(w http.ResponseWriter, r *http.Request) {
 	var request GetSubscribersRequest
 	if err := json.Unmarshal(data, &request); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write(makeErrorRespone(sessionID, err.Error()))
+		_, _ = w.Write(makeErrorRespone(sessionID, err.Error()))
 		return
 	}
 
@@ -38,7 +38,7 @@ func Subscribers(w http.ResponseWriter, r *http.Request) {
 	users, err := model.GetSubscribers()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write(makeErrorRespone(sessionID, err.Error()))
+		_, _ = w.Write(makeErrorRespone(sessionID, err.Error()))
 		return
 	}
 
@@ -46,10 +46,10 @@ func Subscribers(w http.ResponseWriter, r *http.Request) {
 	jsb, err := json.Marshal(&users)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write(makeErrorRespone(sessionID, err.Error()))
+		_, _ = w.Write(makeErrorRespone(sessionID, err.Error()))
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write(makeRespone(sessionID, jsb))
+	_, _ = w.Write(makeRespone(sessionID, jsb))
 }

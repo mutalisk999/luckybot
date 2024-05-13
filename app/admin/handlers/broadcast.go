@@ -8,18 +8,18 @@ import (
 	"luckybot/app/storage/models"
 )
 
-// 广播消息请求
+// BroadcastRequest 广播消息请求
 type BroadcastRequest struct {
 	Message string `json:"message"` // 消息内容
 	Tonce   int64  `json:"tonce"`   // 时间戳
 }
 
-// 广播消息响应
+// BroadcastRespone 广播消息响应
 type BroadcastRespone struct {
 	OK bool `json:"ok"` // 是否成功
 }
 
-// 广播消息
+// Broadcast 广播消息
 func Broadcast(w http.ResponseWriter, r *http.Request) {
 	// 跨域访问
 	allowAccessControl(w)
@@ -28,7 +28,7 @@ func Broadcast(w http.ResponseWriter, r *http.Request) {
 	sessionID, data, ok := authentication(r)
 	if !ok {
 		w.WriteHeader(http.StatusUnauthorized)
-		w.Write(makeErrorRespone("", ""))
+		_, _ = w.Write(makeErrorRespone("", ""))
 		return
 	}
 
@@ -36,7 +36,7 @@ func Broadcast(w http.ResponseWriter, r *http.Request) {
 	var request BroadcastRequest
 	if err := json.Unmarshal(data, &request); err != nil || len(request.Message) == 0 {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write(makeErrorRespone(sessionID, err.Error()))
+		_, _ = w.Write(makeErrorRespone(sessionID, err.Error()))
 		return
 	}
 
@@ -46,7 +46,7 @@ func Broadcast(w http.ResponseWriter, r *http.Request) {
 	subscribers, err := model.GetSubscribers()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write(makeErrorRespone(sessionID, err.Error()))
+		_, _ = w.Write(makeErrorRespone(sessionID, err.Error()))
 		return
 	}
 	for _, userID := range subscribers {
@@ -57,12 +57,12 @@ func Broadcast(w http.ResponseWriter, r *http.Request) {
 	jsb, err = json.Marshal(&respone)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write(makeErrorRespone(sessionID, err.Error()))
+		_, _ = w.Write(makeErrorRespone(sessionID, err.Error()))
 		return
 	}
 
 	// 返回结果
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write(makeRespone(sessionID, jsb))
+	_, _ = w.Write(makeRespone(sessionID, jsb))
 }

@@ -14,10 +14,10 @@ import (
 	"luckybot/app/storage"
 )
 
-// 默认红包ID
+// DefaultLuckyMoneyID 默认红包ID
 const DefaultLuckyMoneyID = 100000
 
-// 红包信息
+// LuckyMoney 红包信息
 type LuckyMoney struct {
 	ID         uint64     `json:"id"`          // 红包ID
 	SN         string     `json:"sn"`          // 唯一编号
@@ -34,7 +34,7 @@ type LuckyMoney struct {
 	Timestamp  int64      `json:"timestamp"`   // 时间戳
 }
 
-// 标准化
+// Normalization 标准化
 func (luckymoney *LuckyMoney) Normalization() {
 	if luckymoney.Value != nil {
 		luckymoney.Value.SetPrec(fmath.Prec())
@@ -47,19 +47,19 @@ func (luckymoney *LuckyMoney) Normalization() {
 	}
 }
 
-// 红包用户
+// LuckyMoneyUser 红包用户
 type LuckyMoneyUser struct {
 	UserID    int64  `json:"user_id"`    // 用户ID
 	FirstName string `json:"first_name"` // 用户名
 }
 
-// 红包记录
+// LuckyMoneyHistory 红包记录
 type LuckyMoneyHistory struct {
 	Value *big.Float      `json:"value"`          // 红包金额
 	User  *LuckyMoneyUser `json:"user,omitempty"` // 用户信息
 }
 
-// 标准化
+// Normalization 标准化
 func (history *LuckyMoneyHistory) Normalization() {
 	if history.Value != nil {
 		history.Value.SetPrec(fmath.Prec())
@@ -67,17 +67,17 @@ func (history *LuckyMoneyHistory) Normalization() {
 }
 
 var (
-	// 领完了
+	// ErrNothingLeft 领完了
 	ErrNothingLeft = errors.New("nothing left")
-	// 重复领取
+	// ErrRepeatReceive 重复领取
 	ErrRepeatReceive = errors.New("repeat receive")
-	// 没有激活
+	// ErrNotActivated 没有激活
 	ErrNotActivated = errors.New("not activated")
-	// 已经激活
+	// ErrAlreadyActivated 已经激活
 	ErrAlreadyActivated = errors.New("already activated")
-	// 没有权限
+	// ErrPermissionDenied 没有权限
 	ErrPermissionDenied = errors.New("permission denied")
-	// 红包已过期
+	// ErrLuckyMoneydExpired 红包已过期
 	ErrLuckyMoneydExpired = errors.New("lucky money expired")
 )
 
@@ -112,7 +112,7 @@ var (
 // }
 // ***************************************************
 
-// 红包模型
+// LuckyMoneyModel 红包模型
 type LuckyMoneyModel struct {
 }
 
@@ -234,7 +234,7 @@ func (model *LuckyMoneyModel) receiveLuckyMoney(tx *bolt.Tx, sid string, seq int
 	return history.Value, nil
 }
 
-// 创建新红包
+// NewLuckyMoney 创建新红包
 func (model *LuckyMoneyModel) NewLuckyMoney(data *LuckyMoney, luckyMoneyArr []*big.Float) (*LuckyMoney, error) {
 	err := storage.DB.Update(func(tx *bolt.Tx) error {
 		// 生成红包ID
@@ -323,7 +323,7 @@ func (model *LuckyMoneyModel) NewLuckyMoney(data *LuckyMoney, luckyMoneyArr []*b
 	return data, nil
 }
 
-// 是否过期
+// IsExpired 是否过期
 func (model *LuckyMoneyModel) IsExpired(id uint64) bool {
 	var expired bool
 	sid := strconv.FormatUint(id, 10)
@@ -342,7 +342,7 @@ func (model *LuckyMoneyModel) IsExpired(id uint64) bool {
 	return expired
 }
 
-// 设置过期
+// SetExpired 设置过期
 func (model *LuckyMoneyModel) SetExpired(id uint64) error {
 	// 获取红包信息
 	luckyMoney, _, err := model.GetLuckyMoney(id)
@@ -366,7 +366,7 @@ func (model *LuckyMoneyModel) SetExpired(id uint64) error {
 	})
 }
 
-// 是否已领取
+// IsReceived 是否已领取
 func (model *LuckyMoneyModel) IsReceived(id uint64, userID int64) (bool, error) {
 	received := false
 	sid := strconv.FormatUint(id, 10)
@@ -384,7 +384,7 @@ func (model *LuckyMoneyModel) IsReceived(id uint64, userID int64) (bool, error) 
 	return received, nil
 }
 
-// 获取最新过期红包
+// GetLatestExpired 获取最新过期红包
 func (model *LuckyMoneyModel) GetLatestExpired() (uint64, error) {
 	var id uint64
 	err := storage.DB.View(func(tx *bolt.Tx) error {
@@ -411,7 +411,7 @@ func (model *LuckyMoneyModel) GetLatestExpired() (uint64, error) {
 	return id, nil
 }
 
-// 设置最新过期红包
+// SetLatestExpired 设置最新过期红包
 func (model *LuckyMoneyModel) SetLatestExpired(id uint64) error {
 	sid := strconv.FormatUint(id, 10)
 	return storage.DB.Update(func(tx *bolt.Tx) error {
@@ -423,7 +423,7 @@ func (model *LuckyMoneyModel) SetLatestExpired(id uint64) error {
 	})
 }
 
-// 获取红包信息
+// GetLuckyMoney 获取红包信息
 func (model *LuckyMoneyModel) GetLuckyMoney(id uint64) (*LuckyMoney, uint32, error) {
 	var received uint32
 	var base LuckyMoney
@@ -459,7 +459,7 @@ func (model *LuckyMoneyModel) GetLuckyMoney(id uint64) (*LuckyMoney, uint32, err
 	return &base, received, nil
 }
 
-// 根据SN获取红包ID
+// GetLuckyMoneyIDBySN 根据SN获取红包ID
 func (model *LuckyMoneyModel) GetLuckyMoneyIDBySN(sn string) (uint64, error) {
 	var id uint64
 	err := storage.DB.View(func(tx *bolt.Tx) error {
@@ -486,7 +486,7 @@ func (model *LuckyMoneyModel) GetLuckyMoneyIDBySN(sn string) (uint64, error) {
 	return id, nil
 }
 
-// 领取红包
+// ReceiveLuckyMoney 领取红包
 func (model *LuckyMoneyModel) ReceiveLuckyMoney(id uint64, userID int64, firstName string) (*big.Float, int, error) {
 	received, err := model.IsReceived(id, userID)
 	if err != nil {
@@ -587,7 +587,7 @@ func (model *LuckyMoneyModel) ReceiveLuckyMoney(id uint64, userID int64, firstNa
 	return value, count, nil
 }
 
-// 获取领取历史
+// GetReceiveHistory 获取领取历史
 func (model *LuckyMoneyModel) GetReceiveHistory(id uint64) ([]*LuckyMoneyHistory, error) {
 	sid := strconv.FormatUint(id, 10)
 	array := make([]*LuckyMoneyHistory, 0)
@@ -624,7 +624,7 @@ func (model *LuckyMoneyModel) GetReceiveHistory(id uint64) ([]*LuckyMoneyHistory
 	return array, nil
 }
 
-// 获取最佳红包
+// GetBestAndWorst 获取最佳红包
 func (model *LuckyMoneyModel) GetBestAndWorst(id uint64) (*LuckyMoneyHistory, *LuckyMoneyHistory, error) {
 	var best LuckyMoneyHistory
 	var worst LuckyMoneyHistory
@@ -672,7 +672,7 @@ func (model *LuckyMoneyModel) GetBestAndWorst(id uint64) (*LuckyMoneyHistory, *L
 	return &best, &worst, nil
 }
 
-// 遍历红包列表
+// Foreach 遍历红包列表
 func (model *LuckyMoneyModel) Foreach(startID uint64, callback func(*LuckyMoney)) error {
 	var base LuckyMoney
 	return storage.DB.View(func(tx *bolt.Tx) error {
@@ -700,7 +700,7 @@ func (model *LuckyMoneyModel) Foreach(startID uint64, callback func(*LuckyMoney)
 	})
 }
 
-// 获取用户红包
+// Collection 获取用户红包
 func (model *LuckyMoneyModel) Collection(userID int64, pending bool, offset, limit uint, reverse bool) ([]uint64, uint, error) {
 	var sum uint
 	typ := "pending"

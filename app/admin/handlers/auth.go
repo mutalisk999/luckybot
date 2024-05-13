@@ -20,7 +20,7 @@ import (
 var once sync.Once
 var authenticator *Authenticator
 
-// 会话
+// Session 会话
 type Session struct {
 	ID        string
 	IP        string
@@ -29,7 +29,7 @@ type Session struct {
 	ExpiredAt int64
 }
 
-// 密文消息
+// Ciphertext 密文消息
 type Ciphertext struct {
 	ACK      bool   `json:"ack"`
 	Session  string `json:"session,omitempty"`
@@ -37,7 +37,7 @@ type Ciphertext struct {
 	Checksum uint32 `json:"checksum"`
 }
 
-// 解密消息
+// Decode 解密消息
 func (msg *Ciphertext) Decode(key [16]byte) ([]byte, bool) {
 	if len(msg.Data) == 0 {
 		return nil, false
@@ -60,7 +60,7 @@ func (msg *Ciphertext) Decode(key [16]byte) ([]byte, bool) {
 	return data, true
 }
 
-// 加密消息
+// Encode 加密消息
 func (msg *Ciphertext) Encode(src []byte, key [16]byte) error {
 	data, err := crypto.AesEncrypt(src, key)
 	if err != nil {
@@ -71,14 +71,14 @@ func (msg *Ciphertext) Encode(src []byte, key [16]byte) error {
 	return nil
 }
 
-// 验证器
+// Authenticator 验证器
 type Authenticator struct {
 	mutex    sync.Mutex
 	codes    sync.Map
 	sessions map[string]*Session
 }
 
-// 创建验证器
+// NewAuthenticatorOnce 创建验证器
 func NewAuthenticatorOnce() {
 	once.Do(func() {
 		authenticator = &Authenticator{
@@ -116,7 +116,7 @@ func (a *Authenticator) checkExpiredSessions() {
 	}
 }
 
-// 验证身份
+// Auth 验证身份
 func (a *Authenticator) Auth(ip string, data []byte) (string, bool) {
 	var msg Ciphertext
 	if err := json.Unmarshal(data, &msg); err != nil {
@@ -156,7 +156,7 @@ func (a *Authenticator) Auth(ip string, data []byte) (string, bool) {
 	return session.ID, true
 }
 
-// 保持活跃
+// KeepAlive 保持活跃
 func (a *Authenticator) KeepAlive(sessionID string) {
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
@@ -167,7 +167,7 @@ func (a *Authenticator) KeepAlive(sessionID string) {
 	session.ExpiredAt += 60 * 5
 }
 
-// 解码消息
+// Decode 解码消息
 func (a *Authenticator) Decode(data []byte) (string, []byte, bool) {
 	var msg Ciphertext
 	if err := json.Unmarshal(data, &msg); err != nil {
@@ -189,7 +189,7 @@ func (a *Authenticator) Decode(data []byte) (string, []byte, bool) {
 	return session.ID, jsb, true
 }
 
-// 编码消息
+// Encode 编码消息
 func (a *Authenticator) Encode(sessionID string, data []byte) []byte {
 	a.mutex.Lock()
 	session, ok := a.sessions[sessionID]
@@ -204,22 +204,25 @@ func (a *Authenticator) Encode(sessionID string, data []byte) []byte {
 
 	msg := Ciphertext{}
 	msg.ACK = true
-	msg.Encode(data, a.getKey(session.Key))
+	err := msg.Encode(data, a.getKey(session.Key))
+	if err != nil {
+		return nil
+	}
 	jsb, _ := json.Marshal(&msg)
 	return jsb
 }
 
-// 身份认证请求
+// AuthRequest 身份认证请求
 type AuthRequest struct {
 	Tonce int64 `json:"tonce"` // 时间戳
 }
 
-// 身份认证响应
+// AuthRespone 身份认证响应
 type AuthRespone struct {
 	SessionID string `json:"session_id"` // 会话ID
 }
 
-// 身份认证
+// Authentication 身份认证
 func Authentication(w http.ResponseWriter, r *http.Request) {
 	// 跨域访问
 	allowAccessControl(w)
@@ -229,7 +232,7 @@ func Authentication(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	if err != nil {
 		w.WriteHeader(http.StatusOK)
-		w.Write(makeErrorRespone("", ""))
+		_, _ = w.Write(makeErrorRespone("", ""))
 		return
 	}
 
@@ -238,7 +241,7 @@ func Authentication(w http.ResponseWriter, r *http.Request) {
 	sessionID, ok := authenticator.Auth(address, data)
 	if !ok {
 		w.WriteHeader(http.StatusOK)
-		w.Write(makeErrorRespone("", ""))
+		_, _ = w.Write(makeErrorRespone("", ""))
 		return
 	}
 
@@ -246,11 +249,11 @@ func Authentication(w http.ResponseWriter, r *http.Request) {
 	jsb, err := json.Marshal(&respone)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write(makeErrorRespone(sessionID, err.Error()))
+		_, _ = w.Write(makeErrorRespone(sessionID, err.Error()))
 		return
 	}
 
 	// 返回结果
 	w.WriteHeader(http.StatusOK)
-	w.Write(makeRespone(sessionID, jsb))
+	_, _ = w.Write(makeRespone(sessionID, jsb))
 }

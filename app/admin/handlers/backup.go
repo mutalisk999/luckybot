@@ -9,12 +9,12 @@ import (
 	"luckybot/app/storage"
 )
 
-// 备份数据库请求
+// BackupRequest 备份数据库请求
 type BackupRequest struct {
 	Tonce int64 `json:"tonce"` // 时间戳
 }
 
-// 备份数据库
+// Backup 备份数据库
 func Backup(w http.ResponseWriter, r *http.Request) {
 	// 跨域访问
 	allowAccessControl(w)
@@ -23,7 +23,7 @@ func Backup(w http.ResponseWriter, r *http.Request) {
 	sessionID, data, ok := authentication(r)
 	if !ok {
 		w.WriteHeader(http.StatusUnauthorized)
-		w.Write(makeErrorRespone("", ""))
+		_, _ = w.Write(makeErrorRespone("", ""))
 		return
 	}
 
@@ -31,7 +31,7 @@ func Backup(w http.ResponseWriter, r *http.Request) {
 	var request BackupRequest
 	if err := json.Unmarshal(data, &request); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write(makeErrorRespone(sessionID, err.Error()))
+		_, _ = w.Write(makeErrorRespone(sessionID, err.Error()))
 		return
 	}
 
@@ -40,7 +40,7 @@ func Backup(w http.ResponseWriter, r *http.Request) {
 	size, err := storage.Backup(buf)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write(makeErrorRespone(sessionID, err.Error()))
+		_, _ = w.Write(makeErrorRespone(sessionID, err.Error()))
 		return
 	}
 
@@ -49,5 +49,5 @@ func Backup(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Disposition", `attachment; filename="master.db"`)
 	w.Header().Set("Content-Length", strconv.FormatInt(size, 10))
 	w.WriteHeader(http.StatusOK)
-	w.Write(buf.Bytes())
+	_, _ = w.Write(buf.Bytes())
 }

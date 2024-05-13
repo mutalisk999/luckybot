@@ -12,20 +12,20 @@ import (
 	"luckybot/app/storage/models"
 )
 
-// 充值请求
+// DepositRequest 充值请求
 type DepositRequest struct {
 	UserID int64      `json:"user_id"` // 用户ID
 	Amount *big.Float `json:"amount"`  // 充值金额
 	Tonce  int64      `json:"tonce"`   // 时间戳
 }
 
-// 充值响应
+// DepositRespone 充值响应
 type DepositRespone struct {
 	Amount *big.Float `json:"amount"` // 可用余额
 	Locked *big.Float `json:"locked"` // 锁定金额
 }
 
-// 充值资产
+// Deposit 充值资产
 func Deposit(w http.ResponseWriter, r *http.Request) {
 	// 跨域访问
 	allowAccessControl(w)
@@ -34,7 +34,7 @@ func Deposit(w http.ResponseWriter, r *http.Request) {
 	sessionID, data, ok := authentication(r)
 	if !ok {
 		w.WriteHeader(http.StatusUnauthorized)
-		w.Write(makeErrorRespone("", ""))
+		_, _ = w.Write(makeErrorRespone("", ""))
 		return
 	}
 
@@ -42,7 +42,7 @@ func Deposit(w http.ResponseWriter, r *http.Request) {
 	var request DepositRequest
 	if err := json.Unmarshal(data, &request); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write(makeErrorRespone(sessionID, err.Error()))
+		_, _ = w.Write(makeErrorRespone(sessionID, err.Error()))
 		return
 	}
 
@@ -52,7 +52,7 @@ func Deposit(w http.ResponseWriter, r *http.Request) {
 	}
 	if request.Amount == nil || request.Amount.Cmp(zero) <= 0 {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write(makeErrorRespone(sessionID, "amount must be greater than 0"))
+		_, _ = w.Write(makeErrorRespone(sessionID, "amount must be greater than 0"))
 		return
 	}
 
@@ -62,7 +62,7 @@ func Deposit(w http.ResponseWriter, r *http.Request) {
 	account, err := model.Deposit(request.UserID, serveCfg.Symbol, request.Amount)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write(makeErrorRespone(sessionID, err.Error()))
+		_, _ = w.Write(makeErrorRespone(sessionID, err.Error()))
 		return
 	}
 
@@ -70,7 +70,7 @@ func Deposit(w http.ResponseWriter, r *http.Request) {
 	jsb, err := json.Marshal(respone)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write(makeErrorRespone(sessionID, err.Error()))
+		_, _ = w.Write(makeErrorRespone(sessionID, err.Error()))
 		return
 	}
 
@@ -91,5 +91,5 @@ func Deposit(w http.ResponseWriter, r *http.Request) {
 	// 返回余额信息
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write(makeRespone(sessionID, jsb))
+	_, _ = w.Write(makeRespone(sessionID, jsb))
 }

@@ -9,7 +9,7 @@ import (
 
 var once sync.Once
 
-// 初始路由
+// InitRoute 初始路由
 func InitRoute(router *mux.Router) {
 	once.Do(func() {
 		handlers.NewAuthenticatorOnce()

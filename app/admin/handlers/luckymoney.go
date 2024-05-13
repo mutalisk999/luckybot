@@ -7,13 +7,13 @@ import (
 	"luckybot/app/storage/models"
 )
 
-// 红包信息
+// Luckymoney 红包信息
 type Luckymoney struct {
 	*models.LuckyMoney
 	Count uint32 `json:"count"`
 }
 
-// 获取红包请求
+// GetLuckymoneyRequest 获取红包请求
 type GetLuckymoneyRequest struct {
 	UserID int64 `json:"user_id"` // 用户ID
 	Offset uint  `json:"offset"`  // 偏移量
@@ -21,14 +21,14 @@ type GetLuckymoneyRequest struct {
 	Tonce  int64 `json:"tonce"`   // 时间戳
 }
 
-// 获取红包响应
+// GetLuckymoneyRespone 获取红包响应
 type GetLuckymoneyRespone struct {
 	Sum    int           `json:"sum"`    // 动作总量
 	Count  int           `json:"count"`  // 返回数量
 	Result []*Luckymoney `json:"result"` // 红包列表
 }
 
-// 获取红包信息
+// GetLuckymoney 获取红包信息
 func GetLuckymoney(w http.ResponseWriter, r *http.Request) {
 	// 跨域访问
 	allowAccessControl(w)
@@ -37,7 +37,7 @@ func GetLuckymoney(w http.ResponseWriter, r *http.Request) {
 	sessionID, data, ok := authentication(r)
 	if !ok {
 		w.WriteHeader(http.StatusUnauthorized)
-		w.Write(makeErrorRespone("", ""))
+		_, _ = w.Write(makeErrorRespone("", ""))
 		return
 	}
 
@@ -45,7 +45,7 @@ func GetLuckymoney(w http.ResponseWriter, r *http.Request) {
 	var request GetLuckymoneyRequest
 	if err := json.Unmarshal(data, &request); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write(makeErrorRespone(sessionID, err.Error()))
+		_, _ = w.Write(makeErrorRespone(sessionID, err.Error()))
 		return
 	}
 
@@ -54,7 +54,7 @@ func GetLuckymoney(w http.ResponseWriter, r *http.Request) {
 	ids, sum, err := model.Collection(request.UserID, true, uint(request.Offset), uint(request.Limit), true)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write(makeErrorRespone(sessionID, err.Error()))
+		_, _ = w.Write(makeErrorRespone(sessionID, err.Error()))
 		return
 	}
 
@@ -71,7 +71,7 @@ func GetLuckymoney(w http.ResponseWriter, r *http.Request) {
 	historyIds, historySum, err := model.Collection(request.UserID, false, uint(request.Offset), uint(request.Limit), true)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write(makeErrorRespone(sessionID, err.Error()))
+		_, _ = w.Write(makeErrorRespone(sessionID, err.Error()))
 		return
 	}
 
@@ -84,7 +84,7 @@ func GetLuckymoney(w http.ResponseWriter, r *http.Request) {
 		data, received, err := model.GetLuckyMoney(idset[i])
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write(makeErrorRespone(sessionID, err.Error()))
+			_, _ = w.Write(makeErrorRespone(sessionID, err.Error()))
 			return
 		}
 		result = append(result, &Luckymoney{LuckyMoney: data, Count: received})
@@ -95,12 +95,12 @@ func GetLuckymoney(w http.ResponseWriter, r *http.Request) {
 	jsb, err := json.Marshal(respone)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write(makeErrorRespone(sessionID, err.Error()))
+		_, _ = w.Write(makeErrorRespone(sessionID, err.Error()))
 		return
 	}
 
 	// 返回余额信息
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write(makeRespone(sessionID, jsb))
+	_, _ = w.Write(makeRespone(sessionID, jsb))
 }
