@@ -16,9 +16,10 @@ vendor
 server.yml
 
 *.db
-*.exe
 *.lock
 *.yml
 *.yaml
 debug
 luckybot
+
+.idea/*
