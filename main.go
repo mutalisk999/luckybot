@@ -82,7 +82,10 @@ func main() {
 	d := death.NewDeath(syscall.SIGTERM, syscall.SIGINT, syscall.SIGKILL,
 		syscall.SIGHUP, syscall.SIGQUIT, syscall.SIGALRM)
 	d.WaitForDeathWithFunc(func() {
-		storage.Close()
+		err = storage.Close()
+		if err != nil {
+			logger.Panic(err)
+		}
 		logger.Infof("Lucky money server stoped")
 	})
 }

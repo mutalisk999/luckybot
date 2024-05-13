@@ -7,27 +7,27 @@ import (
 	"github.com/boltdb/bolt"
 )
 
-// 数据库实例
+// DB 数据库实例
 var DB *bolt.DB
 
 var (
-	// 没有桶
+	// ErrNoBucket 没有桶
 	ErrNoBucket = errors.New("no bucket")
 )
 
-// 连接到数据库
+// Connect 连接到数据库
 func Connect(path string) error {
 	var err error
 	DB, err = bolt.Open(path, 0600, nil)
 	return err
 }
 
-// 关闭连接
+// Close 关闭连接
 func Close() error {
 	return DB.Close()
 }
 
-// 备份数据库
+// Backup 备份数据库
 func Backup(writer io.Writer) (int64, error) {
 	var size int64
 	err := DB.View(func(tx *bolt.Tx) error {
@@ -41,7 +41,7 @@ func Backup(writer io.Writer) (int64, error) {
 	return size, err
 }
 
-// 确保桶存在
+// EnsureBucketExists 确保桶存在
 func EnsureBucketExists(tx *bolt.Tx, args ...string) (*bolt.Bucket, error) {
 	if len(args) == 0 {
 		return nil, ErrNoBucket
@@ -63,7 +63,7 @@ func EnsureBucketExists(tx *bolt.Tx, args ...string) (*bolt.Bucket, error) {
 	return bucket, nil
 }
 
-// 获取桶若存在
+// GetBucketIfExists 获取桶若存在
 func GetBucketIfExists(tx *bolt.Tx, args ...string) (*bolt.Bucket, error) {
 	if len(args) == 0 {
 		return nil, ErrNoBucket

@@ -10,7 +10,7 @@ import (
 var once sync.Once
 var manager *history.Manager
 
-// 创建记录管理器
+// CreateManagerOnce 创建记录管理器
 func CreateManagerOnce(bucketNum uint32) {
 	once.Do(func() {
 		var err error
@@ -21,12 +21,12 @@ func CreateManagerOnce(bucketNum uint32) {
 	})
 }
 
-// 删除记录
+// DelRecord 删除记录
 func DelRecord(userID uint32) {
 	manager.Del(userID)
 }
 
-// 获取记录
+// GetRecord 获取记录
 func GetRecord(userID uint32) (*history.History, error) {
 	return manager.Get(userID)
 }

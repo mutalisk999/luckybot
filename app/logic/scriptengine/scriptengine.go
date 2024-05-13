@@ -10,7 +10,7 @@ import (
 var once sync.Once
 var Engine *luaglue.LuaGlue
 
-// 创建脚本引擎
+// NewScriptEngineOnce 创建脚本引擎
 func NewScriptEngineOnce() {
 	once.Do(func() {
 		var err error

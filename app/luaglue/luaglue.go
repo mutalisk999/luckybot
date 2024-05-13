@@ -7,13 +7,13 @@ import (
 	"github.com/yuin/gopher-lua"
 )
 
-// Lua胶水
+// LuaGlue Lua胶水
 type LuaGlue struct {
 	closed bool
 	state  *lua.LState
 }
 
-// 创建实例
+// NewLuaGlue 创建实例
 func NewLuaGlue() (*LuaGlue, error) {
 	state := lua.NewState()
 	state.PreloadModule("http", HttpLoader)
@@ -46,38 +46,44 @@ func (glue *LuaGlue) eventLoop() {
 	}
 }
 
-// 释放资源
+// Close 释放资源
 func (glue *LuaGlue) Close() {
 	glue.state.Close()
 	glue.closed = true
 }
 
-// 时钟事件
+// OnTick 时钟事件
 func (glue *LuaGlue) OnTick(delaytime float64) {
 	fn := glue.state.GetGlobal("on_tick")
 	if fn == nil {
 		return
 	}
 
-	glue.state.CallByParam(lua.P{
+	err := glue.state.CallByParam(lua.P{
 		Fn:      fn,
 		NRet:    0,
 		Protect: true,
 	}, lua.LNumber(delaytime))
+	if err != nil {
+		return
+	}
 }
 
-// 地址是否有效
+// ValidAddress 地址是否有效
 func (glue *LuaGlue) ValidAddress(address string) bool {
 	fn := glue.state.GetGlobal("valid_address")
 	if fn == nil {
 		return false
 	}
 
-	glue.state.CallByParam(lua.P{
+	err := glue.state.CallByParam(lua.P{
 		Fn:      fn,
 		NRet:    1,
 		Protect: true,
 	}, lua.LString(address))
+	if err != nil {
+		return false
+	}
 
 	ret := glue.state.Get(-1)
 	defer glue.state.Pop(1)
@@ -89,18 +95,21 @@ func (glue *LuaGlue) ValidAddress(address string) bool {
 	return bool(val)
 }
 
-// 获取充值地址
+// DepositAddress 获取充值地址
 func (glue *LuaGlue) DepositAddress(userID int64) (string, string) {
 	fn := glue.state.GetGlobal("deposit_address")
 	if fn == nil {
 		return "", ""
 	}
 
-	glue.state.CallByParam(lua.P{
+	err := glue.state.CallByParam(lua.P{
 		Fn:      fn,
 		NRet:    2,
 		Protect: true,
 	}, lua.LString(strconv.FormatInt(userID, 10)))
+	if err != nil {
+		return "", ""
+	}
 
 	address := ""
 	addrRet := glue.state.Get(-2)
@@ -117,7 +126,7 @@ func (glue *LuaGlue) DepositAddress(userID int64) (string, string) {
 	return address, memo
 }
 
-// 接收提现请求
+// OnWithdraw 接收提现请求
 func (glue *LuaGlue) OnWithdraw(to, symbol, amount string, id string) {
 	fn := glue.state.GetGlobal("on_withdraw")
 	if fn == nil {
@@ -125,26 +134,32 @@ func (glue *LuaGlue) OnWithdraw(to, symbol, amount string, id string) {
 	}
 
 	future := newFuture(glue.state, id)
-	glue.state.CallByParam(lua.P{
+	err := glue.state.CallByParam(lua.P{
 		Fn:      fn,
 		NRet:    0,
 		Protect: true,
 	}, lua.LString(to), lua.LString(symbol), lua.LString(amount), future)
+	if err != nil {
+		return
+	}
 }
 
-// 交易是否有效
+// ValidTransaction 交易是否有效
 func (glue *LuaGlue) ValidTransaction(txid, from, to, symbol, amount, memo string) bool {
 	fn := glue.state.GetGlobal("valid_transaction")
 	if fn == nil {
 		return false
 	}
 
-	glue.state.CallByParam(lua.P{
+	err := glue.state.CallByParam(lua.P{
 		Fn:      fn,
 		NRet:    1,
 		Protect: true,
 	}, lua.LString(txid), lua.LString(from), lua.LString(to), lua.LString(symbol),
 		lua.LString(amount), lua.LString(memo))
+	if err != nil {
+		return false
+	}
 
 	ret := glue.state.Get(-1)
 	defer glue.state.Pop(1)

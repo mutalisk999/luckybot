@@ -6,19 +6,19 @@ import (
 	"github.com/zhangpanyi/basebot/telegram/updater"
 )
 
-// 轮询器
+// Poller 轮询器
 type Poller struct {
 	apiaccess string
 }
 
-// 创建轮询器
+// NewPoller 创建轮询器
 func NewPoller(apiaccess string) *Poller {
 	poller := new(Poller)
 	poller.apiaccess = apiaccess
 	return poller
 }
 
-// 开始轮询
+// StartPoll 开始轮询
 func (poller *Poller) StartPoll(token string, handler updater.Handler) (*methods.BotExt, error) {
 	bot, err := methods.GetMe(poller.apiaccess, token)
 	if err != nil {

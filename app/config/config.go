@@ -1,7 +1,7 @@
 package config
 
 import (
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -12,7 +12,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// 服务配置
+// Serve 服务配置
 type Serve struct {
 	Host              string  `yaml:"host"`                 // 主机地址
 	Port              int     `yaml:"port"`                 // HTTP端口
@@ -38,7 +38,7 @@ type parser interface {
 	parse([]byte) error
 }
 
-// 配置管理器
+// Manager 配置管理器
 type Manager struct {
 	serve      *Serve
 	languges   *Languges
@@ -46,17 +46,17 @@ type Manager struct {
 	fileparser map[string]parser
 }
 
-// 获取服务配置
+// GetServe 获取服务配置
 func GetServe() Serve {
 	return *globalManager.serve
 }
 
-// 获取语言配置
+// GetLanguge 获取语言配置
 func GetLanguge() *Languges {
 	return globalManager.languges
 }
 
-// 加载配置文件
+// LoadConfig 加载配置文件
 func LoadConfig(path string) {
 	once.Do(func() {
 		// 创建观察器
@@ -67,7 +67,7 @@ func LoadConfig(path string) {
 		}
 
 		// 加载主配置
-		data, err := ioutil.ReadFile(path)
+		data, err := os.ReadFile(path)
 		if err != nil {
 			panic(err)
 		}
@@ -80,7 +80,10 @@ func LoadConfig(path string) {
 		// 加载语言包配置
 		languages, files := readLanguages(serve.Languages)
 		for _, filename := range files {
-			watcher.Add(filename)
+			err = watcher.Add(filename)
+			if err != nil {
+				panic(err)
+			}
 			fileparser[filename] = languages
 		}
 
@@ -107,7 +110,7 @@ func (m *Manager) watch() {
 			if evt.Op&fsnotify.Write == fsnotify.Write {
 				handler, ok := m.fileparser[evt.Name]
 				if ok {
-					data, err := ioutil.ReadFile(evt.Name)
+					data, err := os.ReadFile(evt.Name)
 					if err == nil {
 						err = handler.parse(data)
 						if err != nil {
@@ -130,7 +133,7 @@ func (m *Manager) watch() {
 
 // 读取语言包配置
 func readLanguages(dir string) (*Languges, []string) {
-	files, err := ioutil.ReadDir(dir)
+	files, err := os.ReadDir(dir)
 	if err != nil {
 		panic(err)
 	}
@@ -142,7 +145,7 @@ func readLanguages(dir string) (*Languges, []string) {
 			ext := strings.ToLower(filepath.Ext(v.Name()))
 			if ext == ".lang" {
 				fullname := dir + string(filepath.Separator) + v.Name()
-				data, err := ioutil.ReadFile(fullname)
+				data, err := os.ReadFile(fullname)
 				if err != nil {
 					panic(err)
 				}

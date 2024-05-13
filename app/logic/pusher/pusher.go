@@ -11,7 +11,7 @@ import (
 var once sync.Once
 var gpusher *msgPusher
 
-// 运行推送器
+// ServiceStart 运行推送器
 func ServiceStart(pool *updater.Pool) {
 	once.Do(func() {
 		gpusher = &msgPusher{

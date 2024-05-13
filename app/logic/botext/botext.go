@@ -10,12 +10,12 @@ import (
 var once sync.Once
 var botInstance *methods.BotExt
 
-// 获取机器人
+// GetBot 获取机器人
 func GetBot() *methods.BotExt {
 	return botInstance
 }
 
-// 设置机器人
+// SetBot 设置机器人
 func SetBot(bot *methods.BotExt) {
 	once.Do(func() {
 		botInstance = bot

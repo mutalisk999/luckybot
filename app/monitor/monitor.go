@@ -2,6 +2,7 @@ package monitor
 
 import (
 	"container/heap"
+	"errors"
 	"math/big"
 	"sync"
 	"time"
@@ -20,13 +21,13 @@ import (
 var once sync.Once
 var monitor *Monitor
 
-// 开始检查
+// StartChecking 开始检查
 func StartChecking(bot *methods.BotExt, pool *updater.Pool) {
 	once.Do(func() {
 		// 获取过期红包
 		model := models.LuckyMoneyModel{}
 		id, err := model.GetLatestExpired()
-		if err != nil && err != storage.ErrNoBucket {
+		if err != nil && !errors.Is(err, storage.ErrNoBucket) {
 			logger.Panic(err)
 		}
 
@@ -35,7 +36,7 @@ func StartChecking(bot *methods.BotExt, pool *updater.Pool) {
 		err = model.Foreach(id+1, func(data *models.LuckyMoney) {
 			heap.Push(&h, expire{ID: data.ID, Timestamp: data.Timestamp})
 		})
-		if err != nil && err != storage.ErrNoBucket {
+		if err != nil && !errors.Is(err, storage.ErrNoBucket) {
 			logger.Panic(err)
 		}
 
@@ -51,19 +52,19 @@ func StartChecking(bot *methods.BotExt, pool *updater.Pool) {
 	})
 }
 
-// 获取机器人
+// GetBot 获取机器人
 func GetBot() *methods.BotExt {
 	return monitor.bot
 }
 
-// 添加红包
+// AddToQueue 添加红包
 func AddToQueue(id uint64, timestamp int64) {
 	monitor.lock.Lock()
 	defer monitor.lock.Unlock()
 	heap.Push(&monitor.h, expire{ID: id, Timestamp: timestamp})
 }
 
-// 检查员
+// Monitor 检查员
 type Monitor struct {
 	h      heapExpire
 	bot    *methods.BotExt
