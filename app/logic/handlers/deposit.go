@@ -10,11 +10,11 @@ import (
 	"luckybot/app/logic/scriptengine"
 )
 
-// 存款
+// DepositHandler 存款
 type DepositHandler struct {
 }
 
-// 消息处理
+// Handle 消息处理
 func (*DepositHandler) Handle(bot *methods.BotExt, r *history.History, update *types.Update) {
 	serveCfg := config.GetServe()
 	fromID := update.CallbackQuery.From.ID
@@ -31,8 +31,8 @@ func (*DepositHandler) Handle(bot *methods.BotExt, r *history.History, update *t
 		},
 	}
 	markup := methods.MakeInlineKeyboardMarkupAuto(menus[:], 1)
-	bot.AnswerCallbackQuery(update.CallbackQuery, "", false, "", 0)
-	bot.EditMessageReplyMarkup(update.CallbackQuery.Message, reply, true, markup)
+	_ = bot.AnswerCallbackQuery(update.CallbackQuery, "", false, "", 0)
+	_, _ = bot.EditMessageReplyMarkup(update.CallbackQuery.Message, reply, true, markup)
 }
 
 // 消息路由

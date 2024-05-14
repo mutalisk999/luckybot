@@ -69,11 +69,11 @@ func luckyMoneysTypeToString(fromID int64, typ string) string {
 	return tr(fromID, "lng_new_equal")
 }
 
-// 创建红包
+// NewHandler 创建红包
 type NewHandler struct {
 }
 
-// 消息处理
+// Handle 消息处理
 func (handler *NewHandler) Handle(bot *methods.BotExt, r *history.History, update *types.Update) {
 	// 回复选择红包类型
 	data := update.CallbackQuery.Data
@@ -180,8 +180,8 @@ func (handler *NewHandler) replyChooseType(bot *methods.BotExt, query *types.Cal
 	// 回复请求结果
 	reply := tr(fromID, "lng_new_choose_type")
 	markup := methods.MakeInlineKeyboardMarkup(menus[:], 2, 1)
-	bot.AnswerCallbackQuery(query, "", false, "", 0)
-	bot.EditMessageReplyMarkup(query.Message, reply, true, markup)
+	_ = bot.AnswerCallbackQuery(query, "", false, "", 0)
+	_, _ = bot.EditMessageReplyMarkup(query.Message, reply, true, markup)
 }
 
 // 处理输入红包金额
@@ -196,9 +196,9 @@ func (handler *NewHandler) handleEnterAmount(bot *methods.BotExt, r *history.His
 	data := query.Data
 	handlerError := func(reply string) {
 		r.Pop()
-		bot.AnswerCallbackQuery(query, "", false, "", 0)
+		_ = bot.AnswerCallbackQuery(query, "", false, "", 0)
 		markup := makeBaseMenus(fromID, query.Data)
-		bot.SendMessage(fromID, reply, true, markup)
+		_, _ = bot.SendMessage(fromID, reply, true, markup)
 	}
 
 	// 检查输入金额
@@ -256,13 +256,13 @@ func (handler *NewHandler) replyEnterAmount(bot *methods.BotExt, r *history.Hist
 
 	serveCfg := config.GetServe()
 	answer := fmt.Sprintf(tr(fromID, "lng_new_set_amount_answer"), amountDesc, serveCfg.Precision)
-	bot.AnswerCallbackQuery(query, answer, false, "", 0)
+	_ = bot.AnswerCallbackQuery(query, answer, false, "", 0)
 
 	reply := tr(fromID, "lng_new_set_amount")
 	amount, _ := getUserBalance(fromID, serveCfg.Symbol)
 	reply = fmt.Sprintf(reply, amountDesc, serveCfg.Precision, luckyMoneysTypeToString(fromID, info.typ),
 		serveCfg.Symbol, amount.String())
-	bot.EditMessageReplyMarkup(query.Message, reply, true, markup)
+	_, _ = bot.EditMessageReplyMarkup(query.Message, reply, true, markup)
 }
 
 // 最低单个金额
@@ -286,8 +286,8 @@ func (handler *NewHandler) handleEnterNumber(bot *methods.BotExt, r *history.His
 	handlerError := func(reply string) {
 		r.Pop()
 		markup := makeBaseMenus(fromID, query.Data)
-		bot.AnswerCallbackQuery(query, "", false, "", 0)
-		bot.SendMessage(fromID, reply, true, markup)
+		_ = bot.AnswerCallbackQuery(query, "", false, "", 0)
+		_, _ = bot.SendMessage(fromID, reply, true, markup)
 	}
 
 	// 检查红包数量
@@ -354,11 +354,11 @@ func (handler *NewHandler) replyEnterNumber(bot *methods.BotExt, r *history.Hist
 		amountDesc, info.amount.String(), serveCfg.Symbol)
 
 	if !edit {
-		bot.SendMessage(fromID, reply, true, markup)
+		_, _ = bot.SendMessage(fromID, reply, true, markup)
 	} else {
-		bot.EditMessageReplyMarkup(query.Message, reply, true, markup)
+		_, _ = bot.EditMessageReplyMarkup(query.Message, reply, true, markup)
 	}
-	bot.AnswerCallbackQuery(query, tr(fromID, "lng_new_set_number_answer"), false, "", 0)
+	_ = bot.AnswerCallbackQuery(query, tr(fromID, "lng_new_set_number_answer"), false, "", 0)
 }
 
 // 处理输入红包留言
@@ -370,9 +370,9 @@ func (handler *NewHandler) handleEnterMessage(bot *methods.BotExt, r *history.Hi
 	fromID := query.From.ID
 	handlerError := func(reply string) {
 		r.Pop()
-		bot.AnswerCallbackQuery(query, "", false, "", 0)
+		_ = bot.AnswerCallbackQuery(query, "", false, "", 0)
 		markup := makeBaseMenus(fromID, query.Data)
-		bot.SendMessage(fromID, reply, true, markup)
+		_, _ = bot.SendMessage(fromID, reply, true, markup)
 		return
 	}
 
@@ -398,7 +398,7 @@ func (handler *NewHandler) handleEnterMessage(bot *methods.BotExt, r *history.Hi
 	remove := methods.ReplyKeyboardRemove{
 		RemoveKeyboard: true,
 	}
-	bot.SendMessage(fromID, tr(fromID, "lng_new_waiting"), false, &remove)
+	_, _ = bot.SendMessage(fromID, tr(fromID, "lng_new_waiting"), false, &remove)
 
 	// 回复红包内容
 	r.Clear()
@@ -410,9 +410,9 @@ func (handler *NewHandler) handleEnterMessage(bot *methods.BotExt, r *history.Hi
 			SwitchInlineQuery: data.SN,
 		},
 	}
-	bot.AnswerCallbackQuery(query, "", false, "", 0)
+	_ = bot.AnswerCallbackQuery(query, "", false, "", 0)
 	markup := methods.MakeInlineKeyboardMarkupAuto(menus[:], 1)
-	bot.SendMessageDisableWebPagePreview(fromID, reply, true, markup)
+	_, _ = bot.SendMessageDisableWebPagePreview(fromID, reply, true, markup)
 }
 
 // 回复输入红包留言
@@ -447,8 +447,8 @@ func (handler *NewHandler) replyEnterMessage(bot *methods.BotExt, r *history.His
 	reply := tr(fromID, "lng_new_set_message")
 	reply = fmt.Sprintf(reply, luckyMoneysTypeToString(fromID, info.typ), serveCfg.Symbol,
 		amount, info.amount.String(), serveCfg.Symbol, info.number)
-	bot.SendMessage(fromID, reply, true, markup)
-	bot.AnswerCallbackQuery(query, tr(fromID, "lng_new_set_message_answer"), false, "", 0)
+	_, _ = bot.SendMessage(fromID, reply, true, markup)
+	_ = bot.AnswerCallbackQuery(query, tr(fromID, "lng_new_set_message_answer"), false, "", 0)
 }
 
 // 处理生成红包
@@ -516,7 +516,7 @@ func (handler *NewHandler) handleGenerateLuckyMoney(userID int64, firstName stri
 
 	// 插入账户记录
 	versionModel := models.AccountVersionModel{}
-	versionModel.InsertVersion(userID, &models.Version{
+	_, _ = versionModel.InsertVersion(userID, &models.Version{
 		Symbol:          serveCfg.Symbol,
 		Locked:          amount,
 		Amount:          account.Amount,

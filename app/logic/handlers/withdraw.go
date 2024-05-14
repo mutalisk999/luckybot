@@ -45,7 +45,7 @@ func init() {
 	}
 }
 
-// 取款
+// WithdrawHandler 取款
 type WithdrawHandler struct {
 }
 
@@ -55,7 +55,7 @@ type withdrawInfo struct {
 	amount  float64 // 资产数量
 }
 
-// 消息处理
+// Handle 消息处理
 func (handler *WithdrawHandler) Handle(bot *methods.BotExt, r *history.History, update *types.Update) {
 	// 回复输入金额
 	info := new(withdrawInfo)
@@ -115,9 +115,9 @@ func (handler *WithdrawHandler) handleEnterWithdrawAmount(bot *methods.BotExt, r
 				CallbackData: "/main/",
 			},
 		}
-		bot.AnswerCallbackQuery(query, "", false, "", 0)
+		_ = bot.AnswerCallbackQuery(query, "", false, "", 0)
 		markup := methods.MakeInlineKeyboardMarkupAuto(menus[:], 1)
-		bot.SendMessage(fromID, reply, true, markup)
+		_, _ = bot.SendMessage(fromID, reply, true, markup)
 	}
 
 	// 获取账户余额
@@ -199,11 +199,11 @@ func (handler *WithdrawHandler) replyEnterWithdrawAmount(bot *methods.BotExt, r 
 	reply := tr(fromID, "lng_withdraw_enter_amount")
 	reply = fmt.Sprintf(reply, balance.String(),
 		serverCfg.Symbol, fee.String(), serverCfg.Symbol)
-	bot.EditMessageReplyMarkup(query.Message, reply, true, markup)
+	_, _ = bot.EditMessageReplyMarkup(query.Message, reply, true, markup)
 
 	answer := tr(fromID, "lng_withdraw_enter_amount_answer")
 	answer = fmt.Sprintf(answer, serverCfg.Symbol)
-	bot.AnswerCallbackQuery(query, answer, false, "", 0)
+	_ = bot.AnswerCallbackQuery(query, answer, false, "", 0)
 }
 
 // 处理输入账户名
@@ -222,9 +222,9 @@ func (handler *WithdrawHandler) handleEnterWithdrawAccout(bot *methods.BotExt, r
 				CallbackData: backSuperior(data),
 			},
 		}
-		bot.AnswerCallbackQuery(query, "", false, "", 0)
+		_ = bot.AnswerCallbackQuery(query, "", false, "", 0)
 		markup := methods.MakeInlineKeyboardMarkupAuto(menus[:], 1)
-		bot.SendMessage(fromID, reply, true, markup)
+		_, _ = bot.SendMessage(fromID, reply, true, markup)
 	}
 
 	// 检查帐号合法
@@ -268,13 +268,13 @@ func (handler *WithdrawHandler) replyEnterAccout(bot *methods.BotExt, r *history
 	reply := tr(fromID, "lng_withdraw_enter_account")
 	reply = fmt.Sprintf(reply, big.NewFloat(info.amount).String(), serverCfg.Symbol, serverCfg.Name)
 	if !edit {
-		bot.SendMessage(fromID, reply, true, markup)
+		_, _ = bot.SendMessage(fromID, reply, true, markup)
 	} else {
-		bot.EditMessageReplyMarkup(query.Message, reply, true, markup)
+		_, _ = bot.EditMessageReplyMarkup(query.Message, reply, true, markup)
 	}
 
 	answer := tr(fromID, "lng_withdraw_enter_account_answer")
-	bot.AnswerCallbackQuery(query, fmt.Sprintf(answer, info.account), false, "", 0)
+	_ = bot.AnswerCallbackQuery(query, fmt.Sprintf(answer, info.account), false, "", 0)
 }
 
 // 处理提现概览
@@ -284,7 +284,7 @@ func (handler *WithdrawHandler) replyWithdrawOverview(bot *methods.BotExt, r *hi
 	// 应答请求
 	fromID := update.CallbackQuery.From.ID
 	answer := tr(fromID, "lng_withdraw_overview_answer")
-	bot.AnswerCallbackQuery(update.CallbackQuery, answer, false, "", 0)
+	_ = bot.AnswerCallbackQuery(update.CallbackQuery, answer, false, "", 0)
 
 	// 格式化信息
 	serverCfg := config.GetServe()
@@ -309,9 +309,9 @@ func (handler *WithdrawHandler) replyWithdrawOverview(bot *methods.BotExt, r *hi
 
 	// 回复信息总览
 	if !edit {
-		bot.SendMessage(fromID, reply, true, markup)
+		_, _ = bot.SendMessage(fromID, reply, true, markup)
 	} else {
-		bot.EditMessageReplyMarkup(update.CallbackQuery.Message, reply, true, markup)
+		_, _ = bot.EditMessageReplyMarkup(update.CallbackQuery.Message, reply, true, markup)
 	}
 }
 
@@ -341,8 +341,8 @@ func (handler *WithdrawHandler) handleWithdraw(bot *methods.BotExt, r *history.H
 		logger.Warnf("Failed to withdraw, user: %d, asset: %s, amount: %s, fee: %s, %v",
 			fromID, serverCfg.Symbol, amount.String(), fee.String(), err)
 		reply := tr(fromID, "lng_withdraw_not_enough")
-		bot.AnswerCallbackQuery(query, reply, false, "", 0)
-		bot.EditMessageReplyMarkup(query.Message, reply, false, markup)
+		_ = bot.AnswerCallbackQuery(query, reply, false, "", 0)
+		_, _ = bot.EditMessageReplyMarkup(query.Message, reply, false, markup)
 		return
 	}
 	logger.Errorf("Withdraw submitted, user: %d, asset: %s, amount: %s, fee: %s",
@@ -351,12 +351,12 @@ func (handler *WithdrawHandler) handleWithdraw(bot *methods.BotExt, r *history.H
 	// 提交成功
 	reply := tr(fromID, "lng_withdraw_submit_ok")
 	answer := tr(fromID, "lng_withdraw_submit_ok_answer")
-	bot.AnswerCallbackQuery(query, answer, false, "", 0)
-	bot.EditMessageReplyMarkup(query.Message, reply, true, nil)
+	_ = bot.AnswerCallbackQuery(query, answer, false, "", 0)
+	_, _ = bot.EditMessageReplyMarkup(query.Message, reply, true, nil)
 
 	// 记录账户历史
 	versionModel := models.AccountVersionModel{}
-	versionModel.InsertVersion(fromID, &models.Version{
+	_, _ = versionModel.InsertVersion(fromID, &models.Version{
 		Symbol:     serverCfg.Symbol,
 		Locked:     amount,
 		Fee:        fee,
@@ -367,7 +367,7 @@ func (handler *WithdrawHandler) handleWithdraw(bot *methods.BotExt, r *history.H
 
 	// 开始转账提示
 	reply = tr(fromID, "lng_withdraw_agreed")
-	bot.EditMessageReplyMarkup(query.Message, reply, true, nil)
+	_, _ = bot.EditMessageReplyMarkup(query.Message, reply, true, nil)
 
 	// 执行提现操作
 	zero := big.NewFloat(0)
@@ -378,7 +378,7 @@ func (handler *WithdrawHandler) handleWithdraw(bot *methods.BotExt, r *history.H
 		// 解锁资产
 		account, err := model.UnlockAccount(fromID, serverCfg.Symbol, fmath.Add(amount, fee))
 		if err == nil {
-			versionModel.InsertVersion(fromID, &models.Version{
+			_, _ = versionModel.InsertVersion(fromID, &models.Version{
 				Symbol:     serverCfg.Symbol,
 				Locked:     fmath.Sub(zero, amount),
 				Fee:        fee,
@@ -395,14 +395,14 @@ func (handler *WithdrawHandler) handleWithdraw(bot *methods.BotExt, r *history.H
 		reply := tr(fromID, "lng_withdraw_transfer_error")
 		logger.Warnf("Failed to transfer, user: %d, asset: %s, amount: %s, fee: %s, %v",
 			fromID, serverCfg.Symbol, amount.String(), fee.String(), err)
-		bot.EditMessageReplyMarkup(query.Message, reply, false, markup)
+		_, _ = bot.EditMessageReplyMarkup(query.Message, reply, false, markup)
 		return
 	}
 
 	// 记录提现成功
 	account, err = model.Withdraw(fromID, serverCfg.Symbol, fmath.Add(amount, fee))
 	if err == nil {
-		versionModel.InsertVersion(fromID, &models.Version{
+		_, _ = versionModel.InsertVersion(fromID, &models.Version{
 			Symbol:     serverCfg.Symbol,
 			Balance:    fmath.Sub(zero, fmath.Add(amount, fee)),
 			Locked:     fmath.Sub(zero, amount),
@@ -419,6 +419,6 @@ func (handler *WithdrawHandler) handleWithdraw(bot *methods.BotExt, r *history.H
 
 	// 返回处理结果
 	reply = tr(fromID, "lng_withdraw_success")
-	bot.EditMessageReplyMarkup(query.Message, fmt.Sprintf(reply, txid), true, markup)
+	_, _ = bot.EditMessageReplyMarkup(query.Message, fmt.Sprintf(reply, txid), true, markup)
 	return
 }

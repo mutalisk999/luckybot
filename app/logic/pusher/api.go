@@ -5,7 +5,7 @@ import (
 	"luckybot/app/logic/botext"
 )
 
-// 投递消息
+// Post 投递消息
 func Post(receiver int64, text string, markdownMode bool,
 	markup *methods.InlineKeyboardMarkup) {
 	if gpusher != nil && botext.GetBot() != nil {

@@ -11,7 +11,7 @@ import (
 	"luckybot/app/storage"
 )
 
-// 账户数据
+// Account 账户数据
 type Account struct {
 	Symbol  string     `json:"symbol"`  // 货币符号
 	Amount  *big.Float `json:"amount"`  // 资产金额
@@ -19,7 +19,7 @@ type Account struct {
 	Disable bool       `json:"disable"` // 禁用账户
 }
 
-// 标准化
+// Normalization 标准化
 func (account *Account) Normalization() {
 	if account.Amount != nil {
 		account.Amount.SetPrec(fmath.Prec())
@@ -30,9 +30,9 @@ func (account *Account) Normalization() {
 }
 
 var (
-	// 资产不足
+	// ErrInsufficientAmount 资产不足
 	ErrInsufficientAmount = errors.New("insufficient amount")
-	// 没有此类型账户
+	// ErrNoSuchTypeAccount 没有此类型账户
 	ErrNoSuchTypeAccount = errors.New("no such type of account")
 )
 
@@ -48,11 +48,11 @@ var (
 //	}
 // ***************************************************
 
-// 账户模型
+// AccountModel 账户模型
 type AccountModel struct {
 }
 
-// 获取账户列表
+// GetAccounts 获取账户列表
 func (model *AccountModel) GetAccounts(userID int64) ([]*Account, error) {
 	accounts := make([]*Account, 0)
 	key := strconv.FormatInt(userID, 10)
@@ -84,7 +84,7 @@ func (model *AccountModel) GetAccounts(userID int64) ([]*Account, error) {
 	return accounts, nil
 }
 
-// 获取账户信息
+// GetAccount 获取账户信息
 func (model *AccountModel) GetAccount(userID int64, symbol string) (*Account, error) {
 	var account Account
 	key := strconv.FormatInt(userID, 10)
@@ -112,7 +112,7 @@ func (model *AccountModel) GetAccount(userID int64, symbol string) (*Account, er
 	return &account, nil
 }
 
-// 账户存款操作
+// Deposit 账户存款操作
 func (model *AccountModel) Deposit(userID int64, symbol string, amount *big.Float) (*Account, error) {
 	var account Account
 	key := strconv.FormatInt(userID, 10)
@@ -152,7 +152,7 @@ func (model *AccountModel) Deposit(userID int64, symbol string, amount *big.Floa
 	return &account, nil
 }
 
-// 账户取款操作
+// Withdraw 账户取款操作
 func (model *AccountModel) Withdraw(userID int64, symbol string, amount *big.Float) (*Account, error) {
 	var account Account
 	key := strconv.FormatInt(userID, 10)
@@ -194,7 +194,7 @@ func (model *AccountModel) Withdraw(userID int64, symbol string, amount *big.Flo
 	return &account, nil
 }
 
-// 锁定账户资金
+// LockAccount 锁定账户资金
 func (model *AccountModel) LockAccount(userID int64, symbol string, amount *big.Float) (*Account, error) {
 	var account Account
 	key := strconv.FormatInt(userID, 10)
@@ -237,7 +237,7 @@ func (model *AccountModel) LockAccount(userID int64, symbol string, amount *big.
 	return &account, nil
 }
 
-// 解锁账户资金
+// UnlockAccount 解锁账户资金
 func (model *AccountModel) UnlockAccount(userID int64, symbol string, amount *big.Float) (*Account, error) {
 	var account Account
 	key := strconv.FormatInt(userID, 10)
@@ -280,7 +280,7 @@ func (model *AccountModel) UnlockAccount(userID int64, symbol string, amount *bi
 	return &account, nil
 }
 
-// 从锁定账户转账
+// TransferFromLockAccount 从锁定账户转账
 func (model *AccountModel) TransferFromLockAccount(from, to int64, symbol string,
 	amount *big.Float) (*Account, *Account, error) {
 

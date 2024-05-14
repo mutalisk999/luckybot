@@ -7,11 +7,11 @@ import (
 	"luckybot/app/storage"
 )
 
-// 订户模型
+// SubscriberModel 订户模型
 type SubscriberModel struct {
 }
 
-// 获取订阅者
+// GetSubscribers 获取订阅者
 func (*SubscriberModel) GetSubscribers() ([]int64, error) {
 	var subscribers []int64
 	err := storage.DB.View(func(tx *bolt.Tx) error {
@@ -40,7 +40,7 @@ func (*SubscriberModel) GetSubscribers() ([]int64, error) {
 	return subscribers, nil
 }
 
-// 添加订阅者
+// AddSubscriber 添加订阅者
 func (*SubscriberModel) AddSubscriber(userID int64) error {
 	return storage.DB.Batch(func(tx *bolt.Tx) error {
 		bucket, err := storage.EnsureBucketExists(tx, "subscribers")
@@ -56,7 +56,7 @@ func (*SubscriberModel) AddSubscriber(userID int64) error {
 	})
 }
 
-// 获取订阅者数量
+// GetSubscriberCount 获取订阅者数量
 func (*SubscriberModel) GetSubscriberCount() (int, error) {
 	var count int
 	err := storage.DB.View(func(tx *bolt.Tx) error {

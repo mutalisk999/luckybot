@@ -15,7 +15,7 @@ import (
 	"luckybot/app/storage/models"
 )
 
-// 每页条目
+// PageLimit 每页条目
 const PageLimit = 5
 
 // 匹配历史页数
@@ -29,11 +29,11 @@ func init() {
 	}
 }
 
-// 历史记录
+// HistoryHandler 历史记录
 type HistoryHandler struct {
 }
 
-// 消息处理
+// Handle 消息处理
 func (handler *HistoryHandler) Handle(bot *methods.BotExt, r *history.History, update *types.Update) {
 	data := update.CallbackQuery.Data
 	result := reMathHistoryPage.FindStringSubmatch(data)
@@ -107,12 +107,12 @@ func (handler *HistoryHandler) replyHistory(bot *methods.BotExt, page int, query
 
 	// 回复内容
 	if len(history) > 0 {
-		bot.AnswerCallbackQuery(query, "", false, "", 0)
+		_ = bot.AnswerCallbackQuery(query, "", false, "", 0)
 	} else {
 		reply := tr(fromID, "lng_history_no_op")
-		bot.AnswerCallbackQuery(query, reply, false, "", 0)
+		_ = bot.AnswerCallbackQuery(query, reply, false, "", 0)
 		return
 	}
 	reply := handler.makeReplyContent(fromID, history, uint(page), uint(pagesum))
-	bot.EditMessageReplyMarkup(query.Message, reply, true, handler.makeMenuList(fromID, page, pagesum))
+	_, _ = bot.EditMessageReplyMarkup(query.Message, reply, true, handler.makeMenuList(fromID, page, pagesum))
 }

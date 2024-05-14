@@ -2,14 +2,14 @@ package luaglue
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strconv"
 
 	lua "github.com/yuin/gopher-lua"
 )
 
-// 加载模块
+// HttpLoader 加载模块
 func HttpLoader(state *lua.LState) int {
 	mod := state.SetFuncs(state.NewTable(), map[string]lua.LGFunction{
 		"get":  get,
@@ -67,7 +67,7 @@ func formatResp(state *lua.LState, resp *http.Response) *lua.LTable {
 	state.SetField(table, "content_length", lua.LNumber(float64(resp.ContentLength)))
 
 	// 读取Body数据
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		state.SetField(table, "body", lua.LNil)
 	} else {

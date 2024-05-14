@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"math/big"
 	"strings"
@@ -14,17 +15,17 @@ import (
 	"luckybot/app/storage/models"
 )
 
-// 消息处理器
+// Handler 消息处理器
 type Handler interface {
 	route(*methods.BotExt, *types.CallbackQuery) Handler
 	Handle(*methods.BotExt, *history.History, *types.Update)
 }
 
-// 主菜单
+// MainMenuHandler 主菜单
 type MainMenuHandler struct {
 }
 
-// 消息处理
+// Handle 消息处理
 func (handler *MainMenuHandler) Handle(bot *methods.BotExt, r *history.History, update *types.Update) {
 	if bot == nil || r == nil {
 		return
@@ -57,7 +58,7 @@ func (handler *MainMenuHandler) Handle(bot *methods.BotExt, r *history.History, 
 		r.Clear()
 		reply, menus := handler.replyMessage(update.Message.From.ID)
 		markup := methods.MakeInlineKeyboardMarkup(menus, 2, 2, 2, 1)
-		bot.SendMessage(update.Message.Chat.ID, reply, true, markup)
+		_, _ = bot.SendMessage(update.Message.Chat.ID, reply, true, markup)
 		return
 	}
 
@@ -68,10 +69,10 @@ func (handler *MainMenuHandler) Handle(bot *methods.BotExt, r *history.History, 
 	// 回复主菜单
 	if update.CallbackQuery.Data == "/main/" {
 		r.Clear()
-		bot.AnswerCallbackQuery(update.CallbackQuery, "", false, "", 0)
+		_ = bot.AnswerCallbackQuery(update.CallbackQuery, "", false, "", 0)
 		reply, menus := handler.replyMessage(update.CallbackQuery.From.ID)
 		markup := methods.MakeInlineKeyboardMarkup(menus, 2, 2, 2, 1)
-		bot.EditMessageReplyMarkup(update.CallbackQuery.Message, reply, true, markup)
+		_, _ = bot.EditMessageReplyMarkup(update.CallbackQuery.Message, reply, true, markup)
 		return
 	}
 
@@ -127,7 +128,7 @@ func getUserBalance(userID int64, asset string) (*big.Float, *big.Float) {
 	model := models.AccountModel{}
 	account, err := model.GetAccount(userID, asset)
 	if err != nil {
-		if err != storage.ErrNoBucket && err != models.ErrNoSuchTypeAccount {
+		if !errors.Is(err, storage.ErrNoBucket) && !errors.Is(err, models.ErrNoSuchTypeAccount) {
 			logger.Warnf("Failed to get user asset, %v, %v, %v", userID, asset, err)
 		}
 		return big.NewFloat(0), big.NewFloat(0)

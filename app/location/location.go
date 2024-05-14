@@ -18,7 +18,7 @@ func init() {
 	}
 }
 
-// 格式化时间
+// Format 格式化时间
 func Format(timestamp int64) string {
 	utctime := time.Unix(timestamp, 0)
 	return utctime.In(loc).Format(RFC3339LITE)

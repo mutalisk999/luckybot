@@ -9,10 +9,10 @@ type expire struct {
 // 堆结构
 type heapExpire []expire
 
-// 堆大小
+// Len 堆大小
 func (h heapExpire) Len() int { return len(h) }
 
-// 比较大小
+// Less 比较大小
 func (h heapExpire) Less(i, j int) bool {
 	if h[i].Timestamp == h[j].Timestamp {
 		return h[i].ID < h[j].ID
@@ -20,15 +20,15 @@ func (h heapExpire) Less(i, j int) bool {
 	return h[i].Timestamp < h[j].Timestamp
 }
 
-// 交换元素
+// Swap 交换元素
 func (h heapExpire) Swap(i, j int) { h[i], h[j] = h[j], h[i] }
 
-// 添加元素
+// Push 添加元素
 func (h *heapExpire) Push(x interface{}) {
 	*h = append(*h, x.(expire))
 }
 
-// 删除元素
+// Pop 删除元素
 func (h *heapExpire) Pop() interface{} {
 	if h.Len() == 0 {
 		return nil
@@ -40,7 +40,7 @@ func (h *heapExpire) Pop() interface{} {
 	return x
 }
 
-// 首个元素
+// Front 首个元素
 func (h *heapExpire) Front() *expire {
 	if h.Len() == 0 {
 		return nil

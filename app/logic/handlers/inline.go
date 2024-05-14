@@ -12,7 +12,7 @@ import (
 	"luckybot/app/storage/models"
 )
 
-// 显示红包信息
+// ShowLuckyMoney 显示红包信息
 func ShowLuckyMoney(bot *methods.BotExt, query *types.InlineQuery) {
 	if query.Query == "list" {
 		replyLuckyMoneyList(bot, query)
@@ -24,7 +24,7 @@ func ShowLuckyMoney(bot *methods.BotExt, query *types.InlineQuery) {
 // 回复空信息
 func replyNone(bot *methods.BotExt, query *types.InlineQuery) {
 	result := make([]methods.InlineQueryResult, 0)
-	bot.AnswerInlineQuery(query, nil, 1, result)
+	_ = bot.AnswerInlineQuery(query, nil, 1, result)
 }
 
 // 回复红包列表
@@ -56,7 +56,7 @@ func replyLuckyMoneyList(bot *methods.BotExt, query *types.InlineQuery) {
 
 	// 生成红包信息
 	nextOffet := int32(offset + len(result))
-	bot.AnswerInlineQuery(query, &nextOffet, 1, result)
+	_ = bot.AnswerInlineQuery(query, &nextOffet, 1, result)
 }
 
 // 回复红包信息
@@ -88,7 +88,7 @@ func replyLuckyMoneyInfo(bot *methods.BotExt, query *types.InlineQuery) {
 	// 生成红包信息
 	result := make([]methods.InlineQueryResult, 0)
 	result = append(result, makeLuckyMoneyInfo(luckyMoney, received, 0))
-	bot.AnswerInlineQuery(query, nil, 1, result)
+	_ = bot.AnswerInlineQuery(query, nil, 1, result)
 }
 
 // 生成红包信息

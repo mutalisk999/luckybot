@@ -8,11 +8,11 @@ import (
 	"github.com/zhangpanyi/basebot/telegram/types"
 )
 
-// 机器人评分
+// RateBotHandler 机器人评分
 type RateBotHandler struct {
 }
 
-// 消息处理
+// Handle 消息处理
 func (*RateBotHandler) Handle(bot *methods.BotExt, r *history.History, update *types.Update) {
 	fromID := update.CallbackQuery.From.ID
 	reply := fmt.Sprintf(tr(fromID, "lng_rate_say"), bot.UserName, bot.UserName)
@@ -23,7 +23,7 @@ func (*RateBotHandler) Handle(bot *methods.BotExt, r *history.History, update *t
 		},
 	}
 	markup := methods.MakeInlineKeyboardMarkupAuto(menus[:], 1)
-	bot.EditMessageReplyMarkup(update.CallbackQuery.Message, reply, true, markup)
+	_, _ = bot.EditMessageReplyMarkup(update.CallbackQuery.Message, reply, true, markup)
 }
 
 // 消息路由

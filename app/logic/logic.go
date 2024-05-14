@@ -9,7 +9,7 @@ import (
 	"luckybot/app/storage/models"
 )
 
-// 机器人更新
+// NewUpdate 机器人更新
 func NewUpdate(bot *methods.BotExt, update *types.Update) {
 	// 展示红包
 	if update.InlineQuery != nil {
@@ -27,7 +27,7 @@ func NewUpdate(bot *methods.BotExt, update *types.Update) {
 
 		// 添加订户
 		model := models.SubscriberModel{}
-		model.AddSubscriber(fromID)
+		_ = model.AddSubscriber(fromID)
 	} else if update.CallbackQuery != nil {
 		fromID = update.CallbackQuery.From.ID
 	} else {

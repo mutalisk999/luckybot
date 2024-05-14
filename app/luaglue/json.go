@@ -8,7 +8,7 @@ import (
 	lua "github.com/yuin/gopher-lua"
 )
 
-// 加载模块
+// JsonLoader 加载模块
 func JsonLoader(state *lua.LState) int {
 	mod := state.SetFuncs(state.NewTable(), map[string]lua.LGFunction{
 		"dump":  dump,

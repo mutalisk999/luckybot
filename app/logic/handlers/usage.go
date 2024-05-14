@@ -10,11 +10,11 @@ import (
 	"luckybot/app/config"
 )
 
-// 使用说明
+// UsageHandler 使用说明
 type UsageHandler struct {
 }
 
-// 消息处理
+// Handle 消息处理
 func (*UsageHandler) Handle(bot *methods.BotExt, r *history.History, update *types.Update) {
 	fromID := update.CallbackQuery.From.ID
 	menus := [...]methods.InlineKeyboardButton{
@@ -36,8 +36,8 @@ func (*UsageHandler) Handle(bot *methods.BotExt, r *history.History, update *typ
 	github := fmt.Sprintf("Fork from Github: [%s](%s)", app.GITHUB, app.GITHUB)
 	reply = fmt.Sprintf("%s\n\n%s\n%s", fmt.Sprintf(reply, serveCfg.Name, supportStaff), version, github)
 
-	bot.AnswerCallbackQuery(update.CallbackQuery, "", false, "", 0)
-	bot.EditMessageReplyMarkupDisableWebPagePreview(update.CallbackQuery.Message, reply, true, markup)
+	_ = bot.AnswerCallbackQuery(update.CallbackQuery, "", false, "", 0)
+	_, _ = bot.EditMessageReplyMarkupDisableWebPagePreview(update.CallbackQuery.Message, reply, true, markup)
 }
 
 // 消息路由

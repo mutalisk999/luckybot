@@ -7,11 +7,11 @@ import (
 	"luckybot/app/storage"
 )
 
-// 充值模型
+// DepositModel 充值模型
 type DepositModel struct {
 }
 
-// 记录是否存在
+// Exist 记录是否存在
 func (model *DepositModel) Exist(txid string) bool {
 	ret := false
 	storage.DB.View(func(tx *bolt.Tx) error {
@@ -21,7 +21,7 @@ func (model *DepositModel) Exist(txid string) bool {
 	return ret
 }
 
-// 添加充值记录
+// Add 添加充值记录
 func (model *DepositModel) Add(txid string, data []byte) error {
 	return storage.DB.Update(func(tx *bolt.Tx) error {
 		if model.exist(tx, txid) {

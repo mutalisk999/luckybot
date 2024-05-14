@@ -8,13 +8,13 @@ import (
 )
 
 var (
-	// 金额不足
+	// ErrTooLittleMoney 金额不足
 	ErrTooLittleMoney = errors.New("each person is at least 0.01")
-	// 红包数量太少
+	// ErrorTooLittleNumber 红包数量太少
 	ErrorTooLittleNumber = errors.New("number must be more than 0")
 )
 
-// 生成算法
+// Generate 生成算法
 func Generate(amount *big.Float, precision, number int) ([]*big.Float, error) {
 	if precision < 0 {
 		precision = 0
@@ -39,7 +39,7 @@ func Generate(amount *big.Float, precision, number int) ([]*big.Float, error) {
 	return result, nil
 }
 
-// 零值
+// ZERO 零值
 var ZERO = big.NewInt(0)
 
 // 随机器

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -13,7 +14,7 @@ import (
 	"luckybot/app/storage/models"
 )
 
-// 回复红包信息
+// ReplyLuckyMoneyInfo 回复红包信息
 func ReplyLuckyMoneyInfo(bot *methods.BotExt, fromID int64, inlineMessageID string,
 	luckyMoney *models.LuckyMoney, received uint32, expired bool) {
 
@@ -76,14 +77,14 @@ func ReplyLuckyMoneyInfo(bot *methods.BotExt, fromID int64, inlineMessageID stri
 	if len(users) > 0 {
 		message = fmt.Sprintf(tr(fromID, "lng_chat_receive_format"), message, strings.Join(users, ","), settle)
 	}
-	bot.EditReplyMarkupByInlineMessageID(inlineMessageID, message, true, replyMarkup)
+	_, _ = bot.EditReplyMarkupByInlineMessageID(inlineMessageID, message, true, replyMarkup)
 }
 
-// 领取红包
+// ReceiveHandler 领取红包
 type ReceiveHandler struct {
 }
 
-// 消息处理
+// Handle 消息处理
 func (handler *ReceiveHandler) Handle(bot *methods.BotExt, r *history.History, update *types.Update) {
 	if bot == nil || r == nil {
 		return
@@ -97,38 +98,38 @@ func (handler *ReceiveHandler) answerReceiveError(bot *methods.BotExt, query *ty
 
 	// 没有红包
 	fromID := query.From.ID
-	if err == storage.ErrNoBucket {
-		bot.AnswerCallbackQuery(query, tr(fromID, "lng_chat_invalid_id"), false, "", 0)
+	if errors.Is(err, storage.ErrNoBucket) {
+		_ = bot.AnswerCallbackQuery(query, tr(fromID, "lng_chat_invalid_id"), false, "", 0)
 		return
 	}
 
 	// 没有激活
-	if err == models.ErrNotActivated {
-		bot.AnswerCallbackQuery(query, tr(fromID, "lng_chat_not_activated"), false, "", 0)
+	if errors.Is(err, models.ErrNotActivated) {
+		_ = bot.AnswerCallbackQuery(query, tr(fromID, "lng_chat_not_activated"), false, "", 0)
 		return
 	}
 
 	// 领完了
-	if err == models.ErrNothingLeft {
-		bot.AnswerCallbackQuery(query, tr(fromID, "lng_chat_nothing_left"), false, "", 0)
+	if errors.Is(err, models.ErrNothingLeft) {
+		_ = bot.AnswerCallbackQuery(query, tr(fromID, "lng_chat_nothing_left"), false, "", 0)
 		return
 	}
 
 	// 重复领取
-	if err == models.ErrRepeatReceive {
-		bot.AnswerCallbackQuery(query, tr(fromID, "lng_chat_repeat_receive"), false, "", 0)
+	if errors.Is(err, models.ErrRepeatReceive) {
+		_ = bot.AnswerCallbackQuery(query, tr(fromID, "lng_chat_repeat_receive"), false, "", 0)
 		return
 	}
 
 	// 红包过期
-	if err == models.ErrLuckyMoneydExpired {
-		bot.AnswerCallbackQuery(query, tr(fromID, "lng_chat_expired_say"), false, "", 0)
+	if errors.Is(err, models.ErrLuckyMoneydExpired) {
+		_ = bot.AnswerCallbackQuery(query, tr(fromID, "lng_chat_expired_say"), false, "", 0)
 		return
 	}
 
 	logger.Errorf("Failed to receive lucky money, id: %d, user_id: %d, %v",
 		id, fromID, err)
-	bot.AnswerCallbackQuery(query, tr(0, "lng_chat_receive_error"), false, "", 0)
+	_ = bot.AnswerCallbackQuery(query, tr(0, "lng_chat_receive_error"), false, "", 0)
 }
 
 // 处理领取红包
@@ -138,7 +139,7 @@ func (handler *ReceiveHandler) handleReceiveLuckyMoney(bot *methods.BotExt, quer
 	model := models.LuckyMoneyModel{}
 	id, err := model.GetLuckyMoneyIDBySN(query.Data)
 	if err != nil {
-		bot.AnswerCallbackQuery(query, tr(fromID, "lng_chat_invalid_id"), false, "", 0)
+		_ = bot.AnswerCallbackQuery(query, tr(fromID, "lng_chat_invalid_id"), false, "", 0)
 		return
 	}
 
@@ -146,19 +147,19 @@ func (handler *ReceiveHandler) handleReceiveLuckyMoney(bot *methods.BotExt, quer
 	luckyMoney, received, err := model.GetLuckyMoney(id)
 	if err != nil {
 		logger.Errorf("Failed to get lucky money, %v", err)
-		bot.AnswerCallbackQuery(query, tr(0, "lng_chat_receive_error"), false, "", 0)
+		_ = bot.AnswerCallbackQuery(query, tr(0, "lng_chat_receive_error"), false, "", 0)
 		return
 	}
 
 	// 是否结束
 	if query.Data == "removed" {
-		bot.AnswerCallbackQuery(query, tr(fromID, "lng_chat_nothing_left"), false, "", 0)
+		_ = bot.AnswerCallbackQuery(query, tr(fromID, "lng_chat_nothing_left"), false, "", 0)
 		return
 	}
 
 	// 是否过期
 	if query.Data == "expired" {
-		bot.AnswerCallbackQuery(query, tr(fromID, "lng_chat_expired_say"), false, "", 0)
+		_ = bot.AnswerCallbackQuery(query, tr(fromID, "lng_chat_expired_say"), false, "", 0)
 		return
 	}
 
@@ -166,7 +167,7 @@ func (handler *ReceiveHandler) handleReceiveLuckyMoney(bot *methods.BotExt, quer
 	value, _, err := model.ReceiveLuckyMoney(id, fromID, query.From.FirstName)
 	if err != nil {
 		handler.answerReceiveError(bot, query, id, err)
-		if err == models.ErrLuckyMoneydExpired {
+		if errors.Is(err, models.ErrLuckyMoneydExpired) {
 			ReplyLuckyMoneyInfo(bot, fromID, *query.InlineMessageID, luckyMoney, received, true)
 		}
 		return
@@ -185,7 +186,7 @@ func (handler *ReceiveHandler) handleReceiveLuckyMoney(bot *methods.BotExt, quer
 
 	// 插入账户记录
 	versionModel := models.AccountVersionModel{}
-	versionModel.InsertVersion(fromID, &models.Version{
+	_, _ = versionModel.InsertVersion(fromID, &models.Version{
 		Symbol:          luckyMoney.Asset,
 		Balance:         value,
 		Amount:          toAccount.Amount,
@@ -198,7 +199,7 @@ func (handler *ReceiveHandler) handleReceiveLuckyMoney(bot *methods.BotExt, quer
 	// 发送领取通知
 	alert := tr(0, "lng_chat_receive_success")
 	alert = fmt.Sprintf(alert, value.String(), luckyMoney.Asset, bot.UserName)
-	bot.AnswerCallbackQuery(query, alert, true, "", 0)
+	_ = bot.AnswerCallbackQuery(query, alert, true, "", 0)
 
 	// 回复红包信息
 	ReplyLuckyMoneyInfo(bot, fromID, *query.InlineMessageID, luckyMoney, received+1, false)

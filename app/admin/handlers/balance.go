@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"math/big"
 	"net/http"
 
@@ -47,7 +48,7 @@ func GetBalance(w http.ResponseWriter, r *http.Request) {
 	serveCfg := config.GetServe()
 	model := models.AccountModel{}
 	account, err := model.GetAccount(request.UserID, serveCfg.Symbol)
-	if err != nil && err != storage.ErrNoBucket {
+	if err != nil && !errors.Is(err, storage.ErrNoBucket) {
 		w.WriteHeader(http.StatusInternalServerError)
 		_, _ = w.Write(makeErrorRespone(sessionID, err.Error()))
 		return

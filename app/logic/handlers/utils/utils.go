@@ -7,12 +7,12 @@ import (
 	"luckybot/app/storage/models"
 )
 
-// 语言翻译
+// Tr 语言翻译
 func Tr(userID int64, key string) string {
 	return config.GetLanguge().Value("zh_CN", key)
 }
 
-// 生成历史内容
+// MakeHistoryMessage 生成历史内容
 func MakeHistoryMessage(fromID int64, version *models.Version) string {
 	switch version.Reason {
 	case models.ReasonGive:

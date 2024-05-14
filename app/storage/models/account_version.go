@@ -11,7 +11,7 @@ import (
 	"luckybot/app/storage"
 )
 
-// 触发原因
+// Reason 触发原因
 type Reason int
 
 const (
@@ -26,7 +26,7 @@ const (
 	ReasonWithdrawFailure        // 提现失败
 )
 
-// 版本信息
+// Version 版本信息
 type Version struct {
 	ID              uint64     `json:"id"`                           // 版本ID
 	Symbol          string     `json:"symbol"`                       // 代币符号
@@ -54,11 +54,11 @@ type Version struct {
 //	}
 // ***************************************************
 
-// 账户版本模型
+// AccountVersionModel 账户版本模型
 type AccountVersionModel struct {
 }
 
-// 插入版本
+// InsertVersion 插入版本
 func (model *AccountVersionModel) InsertVersion(userID int64, version *Version) (*Version, error) {
 	key := strconv.FormatInt(userID, 10)
 	version.Timestamp = time.Now().UTC().Unix()
@@ -88,7 +88,7 @@ func (model *AccountVersionModel) InsertVersion(userID int64, version *Version) 
 	return version, nil
 }
 
-// 获取版本
+// GetVersions 获取版本
 func (model *AccountVersionModel) GetVersions(userID int64, offset, limit uint, reverse bool) ([]*Version, int, error) {
 	sum := 0
 	jsonarray := make([][]byte, 0)
