@@ -6,7 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"hash/crc32"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"sync"
@@ -141,7 +141,7 @@ func (a *Authenticator) Auth(ip string, data []byte) (string, bool) {
 	}
 
 	var buf [16]byte
-	rand.Read(buf[:])
+	_, _ = rand.Read(buf[:])
 	session := Session{
 		ID:        hex.EncodeToString(buf[:]),
 		IP:        ip,
@@ -228,7 +228,7 @@ func Authentication(w http.ResponseWriter, r *http.Request) {
 	allowAccessControl(w)
 
 	// 解析请求参数
-	data, err := ioutil.ReadAll(r.Body)
+	data, err := io.ReadAll(r.Body)
 	defer r.Body.Close()
 	if err != nil {
 		w.WriteHeader(http.StatusOK)

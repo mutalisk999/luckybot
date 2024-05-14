@@ -2,13 +2,13 @@ package handlers
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 )
 
 // 身份验证
 func authentication(r *http.Request) (string, []byte, bool) {
-	data, err := ioutil.ReadAll(r.Body)
+	data, err := io.ReadAll(r.Body)
 	defer r.Body.Close()
 	if err != nil {
 		return "", nil, false
